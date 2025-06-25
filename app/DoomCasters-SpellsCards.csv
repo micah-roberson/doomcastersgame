@@ -1,0 +1,89 @@
+Spell Name,Element,Ability,Attack,Modifier
+Conjure Fire,Fire,None,5,+3 ATK
+Raise Earth,Earth,Scout Area Card,4,+2 ATK
+Gather Wind,Wind,"Combo [Fire] or [Water] or [Earth] = +1 ATK, +1 Spell Cast",3,+2 ATK
+Shape Water,Water,Fuse,0,+3 ATK
+Unleash Void,Void,Refresh Spell Row + Banish,0,+3 ATK
+Infuse Earth,Earth,Re-Fuse (x3) + Banish,0,"+2 ATK, Make [Earth]"
+Infuse Fire,Fire,Re-Fuse (x3) + Banish,0,"+2 ATK, Make [Fire]"
+Infuse Water,Water,Re-Fuse (x3) + Banish,0,"+2 ATK, Make [Water]"
+Infuse Wind,Wind,Re-Fuse (x3) + Banish,0,"+2 ATK, Make [Wind]"
+Infuse Void,Void,"Fuse (x2), Banish",0,+3 ATK
+Tectonic Fold,Earth,Banish,10,Attune [Water]
+Meteor Volley,Fire,Banish,10,Attune [Water]
+Endless Torrent,Water,Banish,10,Attune [Water]
+Extinction Gale,Wind,Banish,10,Attune [Water]
+Essence Lance,Void,Consume Spell (x2),10,Free Combo
+Earthquake,Earth,Refresh Area Card,4,+4 ATK to [Earth] Spell
+Mudslide,Earth,Shift Area Card,4,+4 ATK to [Earth] Spell
+Entombment,Earth,Re-Fuse (x2),0,Fuse
+Wrath of Midas,Earth,Shift Area Card,4,+3 ATK
+Summon Jade Colossus,Earth,"Combo [Wind] = +4 ATK, Scout Area Card",3,Scout Area Card
+Summon Stone Titan,Earth,"Combo [Earth] = +4 ATK, Shift Area Card",3,Shift Area Card
+Acid Rain,Earth,"Combo [Water] = +7 ATK, Remove Curse",1,+4 ATK to [Water] Spell
+Magma Burst,Earth,Combo [Fire] = +4 ATK,3,Refresh Area Card
+Locust Swarm,Earth,"Combo [Earth] = +2 ATK, Refresh Area Card",3,+2 ATK
+Terraform,Earth,Shift Area Card (x2),0,Refresh Spell Row
+Excavate,Earth,Combo [Earth] and [Earth] = +6 ATK,4,+2 ATK
+Fireball,Fire,Combo [Fire] = +3 ATK,4,+3 ATK
+Emberstorm,Fire,None,5,+5 ATK to [Fire] Spell
+Fire Tornado,Fire,Combo [Wind] = +6 ATK,2,+5 ATK to [Wind] Spell
+Pyrobomb,Fire,None,1,+4 ATK
+Eruption,Fire,"Combo [Earth]  = +4 ATK, Shift Area Card",3,+5 ATK to [Earth] Spell
+Molten Rain,Fire,"Combo [Water] = +2 ATK, Refuse",5,+5 ATK to [Water] Spell
+Summon Blood Moon,Fire,Spell Consume,7,+4 ATK
+Summon Phoenix,Fire,"Combo [Wind] or [Fire] = +3 ATK, and Fuse",2,Fuse
+Sunfire,Fire,"Combo [Void] = +2, Spell Search",4,+3 ATK
+Feed the Flames,Fire,Combo [Fire] and [Fire] = +10 ATK,0,Instant Combo
+Immmolate,Fire,None,5,+3 ATK
+Avalanche,Water,Fuse,4,Refresh Spell Row
+Tidal Barrage,Water,"Combo [Water] = +4 ATK, Refresh Spell Row",3,+4 ATK to [Water] Spell
+Abyssal Riptide,Water,Combo [Void] = Spell Search,4,+3 ATK
+Tsunami,Water,Refresh Spell Row,4,Re-Fuse
+Glacial Crash,Water,None,7,+4 ATK
+Blood Sacrifice,Water,Combo [Void] = +5 ATK,3,Fuse
+Scalding Mist,Water,Combo [Fire] = +7 ATK,1,+2 ATK
+Aqua Veil,Water,Re-Fuse (x2),0,Re-Fuse
+Rivers of Blood,Water,If Consume Spell = +3 ATK,5,Re-Fuse
+Surge,Water,Revive,5,Fuse
+Flash Freeze,Water,Combo [Water] = Re-Fuse (x3),0,+3 ATK
+Sky Splitter,Wind,Combo [Fire] or [Water] or [Wind] or [Earth] = +3 ATK,3,Instant Combo
+Sonic Boom,Wind,Combo [Wind] = +1 Spell Cast,5,+4 ATK
+Lightning Storm,Wind,Combo [Water] and [Earth] = +6 ATK,4,Instant Combo
+Poison Nova,Wind,"Combo [Earth] = +4 ATK, Scout Area Card",3,Scout Area Card
+Cease Wind,Wind,Combo [Void] = x2 ATK,4,+4 ATK to [Void] Spell
+Celestial Hammer,Wind,Combo [Wind] and [Wind] = +8 ATK,2,x2 ATK to [Wind] Spell
+Sand Storm,Wind,"Combo [Earth] or [Wind] = +2 ATK, +1 Spell Cast",3,+4 ATK to [Wind] Spell
+Rust Shrapnel,Wind,"Combo [Fire] or [Water] = +2 ATK, +1 Spell Cast",3,+4 ATK to [Fire] Spell
+Summon Cylone Elemental,Wind,"Combo [Water] or [Void] = +2 ATK, +1 Spell Cast",3,+3 ATK
+Consuming Winds,Wind,Combo [Wind] and [Void] = Consume Spell and Obtain Area Card,0,Scout Area Card
+Winds of Omen,Wind,Scout Area Card (x4) + Banish,0,Scout Area Card
+Essence Drain,Void,Spell Search,0,Re-Fuse
+Summon Undead,Void,"Obtain Area Card, Banish",0,+2 ATK
+The Hungering Maw,Void,Combo [Fire] or [Water] or [Wind] or [Earth] = +3 ATK,3,+3 ATK
+Searing Void,Void,"Spell Consume (×2), Scout + Shift + Refresh Area Card",0,+4 ATK to [Fire] Spell
+Summon Void Beasts,Void,Combo [Void] = Spell Search,5,x2 ATK to [Void] Spell
+Wither Lands,Void,Refresh Area Card (x2),0,+4 ATK
+Devouring Eclipse,Void,Scout Area Card,4,Refresh Area Card
+World Devourer,Void,none,0,Fuse
+Psychic Crush,Void,"Spell Search (x2), Banish",5,+3 ATK
+Soul Capture,Void,Revive,0,Revive
+Blazing Pulse,Fire,None,5,Re-Fuse
+Dismal Flame,Fire,Spell Search,0,+5 ATK to [Void] Spell
+Pyroclastic Breath,Fire,Combo [Wind] = +1 Spell Cast,4,Fuse
+Binding Waters,Water,Fuse,0,Fuse
+Ethereal Walk,Water,Revive then Fuse,0,+3 ATK
+Extract Blood,Water,none,5,Revive
+Contagion,Earth,None,5,+3 ATK
+Earthen Grasp,Earth,Combo [Earth] = Re-Fuse,4,+3 ATK
+Terrasink,Earth,revive,0,
+Aether Gust,Wind,+1 Spell Action,2,+3 ATK
+Spew Plague,Wind,None,4,+4 ATK
+Flip Dimension,Wind,Shift Area and + 1 Spell Cast,,
+Rift Nexus,Void,Combo [Void] = +7 ATK,0,Refresh Area
+Shadow Stride,Void,Obtain Artifact + Banish,,
+Command Darkness,Void,Combo [Void] and [Void] = Fuse then Revive then Fuse again,0,x2 ATK to [Void] Spell
+Borrow Power,Void,Banish,8,+3 ATK
+Spell ideas,,,,
+Visions of the Hungering Maw,Void,"Continuous: for each modifier attached to this card gains these abilities in the fllowing order: re-fuse, fuse, scout, shift, refresh area card, and spell search",0,
+Engulf,Earth,Continuous: This Spell adds 2 base damage per additive modifier attached. Multiplier modifiers cannot be attached to this spell,0,

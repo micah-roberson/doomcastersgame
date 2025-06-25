@@ -1,0 +1,53 @@
+Area Name,Element Immunity,Defense,Ability,Modifier
+Towering Fortress,None,40,Immobile,+5 ATK
+Barren Fields,None,25,None,+3 ATK
+Mirage Barrier,"Fire, Water, Earth, Wind",15,Consume Spell (x3),+2 ATK then x2 ATK
+Absolute Abyss,None,20,Immobile,"+2 ATK, Make [Void]"
+Charred Ruins,Fire,15,None,"+2 ATK, Make [Fire]"
+Burning Catacombs,Fire,30,None,+4 ATK
+Infernal Lands,Fire,20,None,+3 ATK
+Magma Craters,Fire,35,None,+2 ATK then x2 ATK
+Lava Riverine,Fire,10,Immobile,+2 ATK
+Sunken Citadel,Water,15,None,"+2 ATK, Make [Water]"
+Kelp Forest,Water,10,None,Fuse
+Coral Grotto,Water,10,None,Re-Fuse
+Emerald Sea,Water,10,None,Refresh Spell Row
+Tranquil Pond,Water,10,None,+2 ATK
+Mining Fields,Earth,20,None,"+2 ATK, Make [Earth]"
+Mountain Range,Earth,20,Immobile,Refresh Area Card
+Dwarven Kingdom,Earth,15,Immobile,Shift Area Card
+Druid Thicket,Earth,25,Consume Spell (Share),+3 ATK
+Untouched Rainforest,Earth,10,None,Scout Area Card
+Sky Temple,Wind,10,None,"+2 ATK, Make [Wind]"
+Avian Plateau,Wind,15,Consume Spell,+3 ATK
+Storm-Touched Valley,Wind,25,Consume Spell (x2),x2 ATK then +2 ATK
+Ocean of Clouds,Wind,25,None,x2 ATK
+Idle Storm,Wind,10,Immobile,+2 ATK
+Cursed Lands,Void,10,Cursed,-3 ATK
+Void Beast Den,Void,30,None,x2 ATK
+Forgotten City,Void,15,None,+2 ATK
+Prismatic Spires,Void,30,Immobile,+2 ATK then x2 ATK
+Fairy Grounds,"Water, Earth",10,Consume Spell (Share),Shift Area Card
+Volcano Dome,"Fire, Earth",25,None,+4 ATK
+Floating Island,"Earth, Wind",15,None,Refresh Area Card
+Geyser Array,"Water, Fire",25,None,+3 ATK
+Dragon Lair,"Wind, Fire",30,Immobile,x2 ATK
+Magical Barrier,"Wind, Water",35,None,x2 ATK then +2 ATK
+Rainbow Falls,"Fire, Water, Earth, Wind",20,None,x2 ATK
+Ashen Floodlands,"Fire, Water",15,None,Fuse or Re-fuse
+The Golden City,"Earth, Wind",25,Immobile,"Shift Area Card, +2 ATK"
+Sunny Grasslands,"Fire, Earth",20,Cursed,-4 ATK
+Frostbound Keep,"Water, Wind",20,Consume Spell,x2 ATK
+Jagged Shores,"Water, Earth",25,Immobile,x2 ATK
+Scorched Wastelands,"Fire, Wind",10,Cursed,-2 ATK
+Ashen Colossus Grave,"Void, Fire",35,None,+2 ATK then x2 ATK
+Spectral Waterfalls,"Void, Water",15,Consume Spell (Share),Make [Void]
+Arcane Citadel,"Void, Earth",20,Consume Spell (x2) (Share),x2 ATK
+Twilight Planes,"Void, Wind",25,Immobile,+4 ATK
+Collapsed Kingdom,None,25,Cursed,-4 ATK
+Logged Thicket,None,10,None,+2 ATK
+Meteoric Crater,None,15,Immobile,+3 ATK
+Desolate Port,None,10,None,+2 ATK
+Silent Meadows,None,15,None,+2 ATK
+Soulless Labyrinth,Void,15,Consume Spell,+3 ATK
+No Man's Land,Void,20,None,+3 ATK
