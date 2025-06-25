@@ -75,8 +75,8 @@ const DoomCasterDemo = () => {
     ],
     areaZone: [
       { id: 21, name: 'Barren Fields', defense: 25, immunity: undefined, defeated: false, currentDamage: 0, ability: null },
-      { id: 22, name: 'Tranquil Pond', defense: 10, immunity: 'water', defeated: false, currentDamage: 0, ability: null },
-      { id: 23, name: 'Mining Fields', defense: 20, immunity: 'earth', defeated: false, currentDamage: 0, ability: null }
+      { id: 22, name: 'Avian Plateau', defense: 15, immunity: 'wind', defeated: false, currentDamage: 0, ability: 'Consume Spell' },
+      { id: 23, name: 'Druid Thicket', defense: 25, immunity: 'earth', defeated: false, currentDamage: 0, ability: 'Consume Spell (Share)' }
     ],
     discardPile: [],
     removedFromGame: [],
@@ -124,6 +124,14 @@ const DoomCasterDemo = () => {
   const checkCombo = (spell: Spell) => {
     if (!spell.ability?.includes('Combo')) return { satisfied: false, bonus: 0, extraSpellCast: 0 };
     
+    // Check for Free Combo modifier
+    const hasFreeCombo = spell.modifiers?.some(mod => mod.name?.includes('Free Combo')) || 
+                        spell.ability?.includes('Free Combo');
+    if (hasFreeCombo) {
+      addToLog(`🆓 Free Combo activated for ${spell.name}!`);
+      return { satisfied: true, bonus: 3, extraSpellCast: 0 };
+    }
+    
     const comboMatch = spell.ability.match(/Combo \[([^\]]+)\](?: or \[([^\]]+)\])?(?: and \[([^\]]+)\])? = ([^,]+)/);
     if (!comboMatch) return { satisfied: false, bonus: 0, extraSpellCast: 0 };
     
@@ -159,6 +167,132 @@ const DoomCasterDemo = () => {
     }
     
     return { satisfied, bonus, extraSpellCast };
+  };
+
+  // Use spell ability
+  const useSpellAbility = (spellIndex: number) => {
+    const spell = gameState.player1Spells[spellIndex];
+    
+    if (!spell.ability || spell.ability === 'None') {
+      addToLog("❌ This spell has no ability!");
+      return;
+    }
+
+    if (spell.tapped) {
+      addToLog("❌ Spell already used this turn!");
+      return;
+    }
+
+    // Handle different abilities
+    if (spell.ability.includes('Fuse')) {
+      startFusingFromAbility(spellIndex);
+    } else if (spell.ability.includes('Refresh Spell Row')) {
+      refreshSpellRow();
+      // Tap the spell after using ability
+      setGameState(prev => ({
+        ...prev,
+        player1Spells: prev.player1Spells.map((s, i) => 
+          i === spellIndex ? { ...s, tapped: true } : s
+        )
+      }));
+    } else if (spell.ability.includes('Scout Area')) {
+      scoutAreaCards();
+      setGameState(prev => ({
+        ...prev,
+        player1Spells: prev.player1Spells.map((s, i) => 
+          i === spellIndex ? { ...s, tapped: true } : s
+        )
+      }));
+    } else if (spell.ability.includes('Attune')) {
+      const attuneMatch = spell.ability.match(/Attune \[(\w+)\]/);
+      if (attuneMatch) {
+        const newElement = attuneMatch[1].toLowerCase();
+        setGameState(prev => ({
+          ...prev,
+          player1Spells: prev.player1Spells.map((s, i) => 
+            i === spellIndex ? { ...s, element: newElement, tapped: true } : s
+          )
+        }));
+        addToLog(`🔄 ${spell.name} attuned to ${newElement}`);
+      }
+    } else {
+      addToLog(`⚡ ${spell.name} ability activated!`);
+      // Tap the spell after using ability
+      setGameState(prev => ({
+        ...prev,
+        player1Spells: prev.player1Spells.map((s, i) => 
+          i === spellIndex ? { ...s, tapped: true } : s
+        )
+      }));
+    }
+    
+    setSelectedSpellbook(null);
+  };
+
+  // Start fusing from ability button
+  const startFusingFromAbility = (spellIndex: number) => {
+    setGameMode('fusing');
+    setFuseState({ source: spellIndex, target: null, step: 'select_target' });
+    addToLog(`🔄 Select target spell to fuse ${gameState.player1Spells[spellIndex].name} to`);
+  };
+
+  // Refresh spell row
+  const refreshSpellRow = () => {
+    const newSpells = [
+      { id: Date.now() + 1, name: 'Emberstorm', element: 'fire', attack: 5, ability: 'None' },
+      { id: Date.now() + 2, name: 'Avalanche', element: 'water', attack: 4, ability: 'Fuse' },
+      { id: Date.now() + 3, name: 'Sky Splitter', element: 'wind', attack: 3, ability: 'Combo [Fire] or [Water] or [Wind] or [Earth] = +3 ATK' },
+      { id: Date.now() + 4, name: 'Locust Swarm', element: 'earth', attack: 3, ability: 'Combo [Earth] = +2 ATK, Refresh Area Card' },
+      { id: Date.now() + 5, name: 'Essence Drain', element: 'void', attack: 0, ability: 'Spell Search' }
+    ];
+    
+    setGameState(prev => ({
+      ...prev,
+      spellRow: newSpells
+    }));
+    
+    addToLog(`🔄 Spell row refreshed with new spells!`);
+  };
+
+  // Scout area cards
+  const scoutAreaCards = () => {
+    const activeAreas = gameState.areaZone.filter(area => !area.defeated);
+    if (activeAreas.length > 0) {
+      const scoutedArea = activeAreas[0];
+      addToLog(`👁️ Scouted ${scoutedArea.name}: ${scoutedArea.defense} HP, ${scoutedArea.immunity ? `Immune to ${scoutedArea.immunity}` : 'No immunity'}`);
+    }
+  };
+
+  // Check for Consume Spell requirement
+  const checkConsumeSpell = (spellIndex: number, areaIndex: number) => {
+    const area = gameState.areaZone[areaIndex];
+    
+    if ((area.ability ?? '').includes('Consume Spell')) {
+      const consumeMatch = (area.ability ?? '').match(/Consume Spell \(x?(\d+)\)/);
+      const consumeAmount = consumeMatch ? parseInt(consumeMatch[1]) : 1;
+      
+      const availableSpells = gameState.player1Spells.filter((s, i) => i !== spellIndex && !s.tapped);
+      
+      if (availableSpells.length < consumeAmount) {
+        addToLog(`❌ Need ${consumeAmount} additional spells for Consume Spell!`);
+        return false;
+      }
+      
+      // Auto-consume the required spells
+      setGameState(prev => ({
+        ...prev,
+        discardPile: [...prev.discardPile, ...availableSpells.slice(0, consumeAmount)],
+        player1Spells: prev.player1Spells.filter((s, i) => {
+          if (i === spellIndex) return true;
+          if (s.tapped) return true;
+          return !availableSpells.slice(0, consumeAmount).includes(s);
+        })
+      }));
+      
+      addToLog(`⚡ Consumed ${consumeAmount} spells for ${area.name}`);
+    }
+    
+    return true;
   };
 
   // Check if spellbook has open slots
@@ -360,6 +494,11 @@ const DoomCasterDemo = () => {
     const spell = gameState.player1Spells[selectedSpell];
     const area = gameState.areaZone[areaIndex];
     
+    // Check Consume Spell requirement first
+    if (!checkConsumeSpell(selectedSpell, areaIndex)) {
+      return;
+    }
+    
     setAnimatingCards([spell.id, area.id]);
     
     setTimeout(() => {
@@ -367,6 +506,33 @@ const DoomCasterDemo = () => {
       let modifiedSpell = { ...spell };
       let shouldBanish = false;
       let extraSpellCast = 0;
+      
+      // Handle Attune ability (changes element)
+      if (spell.ability?.includes('Attune')) {
+        const attuneMatch = spell.ability.match(/Attune \[(\w+)\]/);
+        if (attuneMatch) {
+          const newElement = attuneMatch[1].toLowerCase();
+          modifiedSpell = { ...modifiedSpell, element: newElement };
+          addToLog(`🔄 ${spell.name} attuned to ${newElement}`);
+        }
+      }
+      
+      // Process modifiers for Add To Element and other effects
+      if (modifiedSpell.modifiers) {
+        modifiedSpell.modifiers.forEach(mod => {
+          if (mod.name?.includes('Add') && mod.name?.includes('To')) {
+            const addMatch = mod.name.match(/Add \((\d+)\) To \[(\w+)\]/);
+            if (addMatch) {
+              const addAmount = parseInt(addMatch[1]);
+              const targetElement = addMatch[2].toLowerCase();
+              if (modifiedSpell.element === targetElement) {
+                modifiedSpell = { ...modifiedSpell, attack: modifiedSpell.attack + addAmount };
+                addToLog(`⚡ Add ${addAmount} damage to ${targetElement} spell`);
+              }
+            }
+          }
+        });
+      }
       
       // Handle Banish ability
       if (spell.ability?.includes('Banish')) {
@@ -409,16 +575,21 @@ const DoomCasterDemo = () => {
           // Area defeated
           newState.areaZone[areaIndex] = { ...area, defeated: true, currentDamage: area.defense };
           
-          // Add modifier to the attacking spell
+          // Add modifier to the attacking spell (based on CSV data)
           const modifier = { 
             name: `${area.name} Power`, 
-            attack: 2, 
+            attack: 3, 
             source: 'area',
             id: Date.now()
           };
-          newState.player1Spells[selectedSpell].modifiers = [...(modifiedSpell.modifiers || []), modifier];
           
-          addToLog(`💥 ${area.name} defeated! Modifier added to ${modifiedSpell.name}`);
+          // Only add modifier if spell wasn't banished
+          if (!shouldBanish) {
+            newState.player1Spells[selectedSpell].modifiers = [...(modifiedSpell.modifiers || []), modifier];
+            addToLog(`💥 ${area.name} defeated! Modifier added to ${modifiedSpell.name}`);
+          } else {
+            addToLog(`💥 ${area.name} defeated!`);
+          }
         } else {
           newState.areaZone[areaIndex] = { ...area, currentDamage: newDamage };
           addToLog(isImmune ? 
@@ -432,6 +603,11 @@ const DoomCasterDemo = () => {
           newState.removedFromGame = [...prev.removedFromGame, modifiedSpell];
           newState.player1Spells = newState.player1Spells.filter((_, i) => i !== selectedSpell);
           addToLog(`🚫 ${modifiedSpell.name} banished from game`);
+        }
+        
+        // Handle Refresh Spell Row ability
+        if (spell.ability?.includes('Refresh Spell Row')) {
+          refreshSpellRow();
         }
         
         return newState;
@@ -550,8 +726,8 @@ const DoomCasterDemo = () => {
       ],
       areaZone: [
         { id: 21, name: 'Barren Fields', defense: 25, immunity: undefined, defeated: false, currentDamage: 0, ability: null },
-        { id: 22, name: 'Tranquil Pond', defense: 10, immunity: 'water', defeated: false, currentDamage: 0, ability: null },
-        { id: 23, name: 'Mining Fields', defense: 20, immunity: 'earth', defeated: false, currentDamage: 0, ability: null }
+        { id: 22, name: 'Avian Plateau', defense: 15, immunity: 'wind', defeated: false, currentDamage: 0, ability: 'Consume Spell' },
+        { id: 23, name: 'Druid Thicket', defense: 25, immunity: 'earth', defeated: false, currentDamage: 0, ability: 'Consume Spell (Share)' }
       ],
       discardPile: [],
       removedFromGame: [],
@@ -667,22 +843,30 @@ const DoomCasterDemo = () => {
                     isDisabled={gameMode === 'targeting'}
                   />
                   
-                  {/* Cast/Discard Buttons */}
+                  {/* Ability/Cast/Discard Buttons */}
                   {selectedSpellbook === i && gameMode === 'normal' && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => useSpellAbility(i)}
+                        disabled={spell.tapped || !spell.ability || spell.ability === 'None'}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-2 py-1 rounded text-xs flex items-center gap-1"
+                      >
+                        <Zap size={10} />
+                        Ability
+                      </button>
                       <button
                         onClick={() => startCasting(i)}
                         disabled={spell.tapped || gameState.spellsCastThisTurn >= gameState.maxSpells}
-                        className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
+                        className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-2 py-1 rounded text-xs flex items-center gap-1"
                       >
-                        <Swords size={12} />
+                        <Swords size={10} />
                         Cast
                       </button>
                       <button
                         onClick={() => discardSpell(i)}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
+                        className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1"
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={10} />
                         Discard
                       </button>
                     </div>
@@ -751,15 +935,21 @@ const DoomCasterDemo = () => {
           <div className="bg-black/30 rounded-lg p-4">
             <h3 className="font-bold text-purple-400 mb-3">📖 Keywords</h3>
             <div className="text-xs text-gray-300 space-y-1">
-              <div><span className="text-blue-400">Fuse:</span> Attach spell as modifier to another spell</div>
+              <div><span className="text-blue-400">Add (x) To [Element]:</span> Bonus damage to specific element</div>
+              <div><span className="text-yellow-400">Attune [Element]:</span> Change spell's element</div>
               <div><span className="text-red-400">Banish:</span> Remove from game after casting</div>
               <div><span className="text-green-400">Combo [Element]:</span> Bonus if elements played this turn</div>
+              <div><span className="text-orange-400">Consume Spell (x):</span> Discard x spells to attack area</div>
+              <div><span className="text-purple-400">Free Combo:</span> Bypass combo requirements</div>
+              <div><span className="text-cyan-400">Fuse:</span> Attach spell as modifier to another spell</div>
+              <div><span className="text-pink-400">Refresh Spell Row:</span> Replace all spells in row</div>
+              <div><span className="text-indigo-400">Scout Area:</span> View area card details</div>
             </div>
           </div>
 
           {/* Discard & Banished */}
           <div className="bg-black/30 rounded-lg p-4">
-            <h3 className="font-bold text-purple-400 mb-3">🗑️ Removed Cards</h3>
+            <h3 className="font-bold text-purple-400 mb-3">️ Removed Cards</h3>
             <div className="text-xs text-gray-400 space-y-2">
               <div>
                 <span className="text-gray-300">Discard:</span>
@@ -788,12 +978,14 @@ const DoomCasterDemo = () => {
           <div className="bg-black/30 rounded-lg p-4">
             <h3 className="font-bold text-purple-400 mb-3">💡 Strategy</h3>
             <div className="text-xs text-gray-300 space-y-1">
-              <div>• Use Shape Water to fuse spells together</div>
+              <div>• Use Ability button to activate spell powers</div>
+              <div>• Shape Water fuses spells as modifiers</div>
+              <div>• Consume Spell areas require spell sacrifice</div>
               <div>• Play elements for combo bonuses</div>
-              <div>• Watch area immunities!</div>
+              <div>• Watch area immunities carefully</div>
               <div>• Banished spells are gone forever</div>
-              <div>• Fuse modifiers are attached last</div>
-              <div>• Combos check elements played this turn</div>
+              <div>• Attune changes spell elements</div>
+              <div>• Free Combo bypasses requirements</div>
             </div>
           </div>
         </div>
