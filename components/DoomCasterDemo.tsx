@@ -60,22 +60,23 @@ const DoomCasterDemo = () => {
   
   const [gameState, setGameState] = useState<GameState>({
     player1Spells: [
-      { id: 1, name: 'Shape Water', element: 'water', attack: 3, modifiers: [], tapped: false, ability: 'Fuse (1)' },
-      { id: 2, name: 'Gather Wind', element: 'wind', attack: 5, modifiers: [], tapped: false, ability: 'Combo: Wind' },
-      { id: 3, name: 'Conjure Fire', element: 'fire', attack: 4, modifiers: [], tapped: false, ability: 'Banish' },
-      { id: 4, name: 'Raise Earth', element: 'earth', attack: 6, modifiers: [], tapped: false, ability: 'Attune [Fire]' }
+      { id: 1, name: 'Shape Water', element: 'water', attack: 0, modifiers: [], tapped: false, ability: 'Fuse' },
+      { id: 2, name: 'Gather Wind', element: 'wind', attack: 3, modifiers: [], tapped: false, ability: 'Combo [Fire] or [Water] or [Earth] = +1 ATK, +1 Spell Cast' },
+      { id: 3, name: 'Conjure Fire', element: 'fire', attack: 5, modifiers: [], tapped: false, ability: 'None' },
+      { id: 4, name: 'Raise Earth', element: 'earth', attack: 4, modifiers: [], tapped: false, ability: 'Scout Area Card' },
+      { id: 5, name: 'Unleash Void', element: 'void', attack: 0, modifiers: [], tapped: false, ability: 'Refresh Spell Row + Banish' }
     ],
     spellRow: [
-      { id: 11, name: 'Lightning Bolt', element: 'void', attack: 6, ability: 'Banish' },
-      { id: 12, name: 'Flame Burst', element: 'fire', attack: 5, ability: 'Combo: Fire or Wind' },
-      { id: 13, name: 'Wind Cutter', element: 'wind', attack: 4, ability: 'Refresh Spell Row' },
-      { id: 14, name: 'Earth Shield', element: 'earth', attack: 2, ability: 'Add (3) To [Earth]' },
-      { id: 15, name: 'Void Strike', element: 'void', attack: 7, ability: 'Free Combo' }
+      { id: 11, name: 'Fireball', element: 'fire', attack: 4, ability: 'Combo [Fire] = +3 ATK' },
+      { id: 12, name: 'Tidal Barrage', element: 'water', attack: 3, ability: 'Combo [Water] = +4 ATK, Refresh Spell Row' },
+      { id: 13, name: 'Sonic Boom', element: 'wind', attack: 5, ability: 'Combo [Wind] = +1 Spell Cast' },
+      { id: 14, name: 'Earthquake', element: 'earth', attack: 4, ability: 'Refresh Area Card' },
+      { id: 15, name: 'Essence Lance', element: 'void', attack: 10, ability: 'Consume Spell (x2)' }
     ],
     areaZone: [
-      { id: 21, name: 'Crystal Caverns', defense: 8, immunity: 'fire', defeated: false, currentDamage: 0, ability: 'Consume Spell (1)' },
-      { id: 22, name: 'Sky Fortress', defense: 12, immunity: 'wind', defeated: false, currentDamage: 0, ability: 'Immobile' },
-      { id: 23, name: 'Molten Core', defense: 15, immunity: 'fire', defeated: false, currentDamage: 0, ability: null }
+      { id: 21, name: 'Barren Fields', defense: 25, immunity: undefined, defeated: false, currentDamage: 0, ability: null },
+      { id: 22, name: 'Tranquil Pond', defense: 10, immunity: 'water', defeated: false, currentDamage: 0, ability: null },
+      { id: 23, name: 'Mining Fields', defense: 20, immunity: 'earth', defeated: false, currentDamage: 0, ability: null }
     ],
     discardPile: [],
     removedFromGame: [],
@@ -121,20 +122,43 @@ const DoomCasterDemo = () => {
 
   // Check combo requirements
   const checkCombo = (spell: Spell) => {
-    if (!spell.ability?.includes('Combo:')) return { satisfied: false, bonus: 0 };
+    if (!spell.ability?.includes('Combo')) return { satisfied: false, bonus: 0, extraSpellCast: 0 };
     
-    const comboText = spell.ability.split('Combo: ')[1];
-    const isOr = comboText.includes(' or ');
-    const requiredElements = comboText.split(isOr ? ' or ' : ' and ').map(e => e.toLowerCase().trim());
+    const comboMatch = spell.ability.match(/Combo \[([^\]]+)\](?: or \[([^\]]+)\])?(?: and \[([^\]]+)\])? = ([^,]+)/);
+    if (!comboMatch) return { satisfied: false, bonus: 0, extraSpellCast: 0 };
+    
+    const requiredElements = [comboMatch[1], comboMatch[2], comboMatch[3]].filter(Boolean);
+    const bonusText = comboMatch[4];
+    
+    // Check if elements are satisfied
+    const isOr = spell.ability.includes(' or ');
+    const isAnd = spell.ability.includes(' and ');
     
     let satisfied = false;
     if (isOr) {
       satisfied = requiredElements.some(element => elementsPlayedThisTurn.includes(element));
-    } else {
+    } else if (isAnd) {
       satisfied = requiredElements.every(element => elementsPlayedThisTurn.includes(element));
+    } else {
+      satisfied = elementsPlayedThisTurn.includes(requiredElements[0]);
     }
     
-    return { satisfied, bonus: satisfied ? 3 : 0 };
+    if (!satisfied) return { satisfied: false, bonus: 0, extraSpellCast: 0 };
+    
+    // Parse bonus
+    let bonus = 0;
+    let extraSpellCast = 0;
+    
+    if (bonusText.includes('+') && bonusText.includes('ATK')) {
+      const atkMatch = bonusText.match(/\+(\d+) ATK/);
+      if (atkMatch) bonus = parseInt(atkMatch[1]);
+    }
+    
+    if (bonusText.includes('+1 Spell Cast')) {
+      extraSpellCast = 1;
+    }
+    
+    return { satisfied, bonus, extraSpellCast };
   };
 
   // Check if spellbook has open slots
@@ -336,56 +360,31 @@ const DoomCasterDemo = () => {
     const spell = gameState.player1Spells[selectedSpell];
     const area = gameState.areaZone[areaIndex];
     
-    // Handle Consume Spell
-    if ((area.ability ?? '').includes('Consume Spell')) {
-      const consumeAmount = parseInt((area.ability ?? '').match(/\d+/)?.[0] ?? '0');
-      const availableSpells = gameState.player1Spells.filter((s, i) => i !== selectedSpell && !s.tapped);
-      
-      if (availableSpells.length < consumeAmount) {
-        addToLog(`❌ Need ${consumeAmount} additional spells for Consume Spell!`);
-        return;
-      }
-      
-      // Auto-consume the required spells
-      setGameState(prev => ({
-        ...prev,
-        discardPile: [...prev.discardPile, ...availableSpells.slice(0, consumeAmount)],
-        player1Spells: prev.player1Spells.filter((s, i) => {
-          if (i === selectedSpell) return true;
-          if (s.tapped) return true;
-          return !availableSpells.slice(0, consumeAmount).includes(s);
-        })
-      }));
-      
-      addToLog(`⚡ Consumed ${consumeAmount} spells for ${area.name}`);
-    }
-
     setAnimatingCards([spell.id, area.id]);
     
     setTimeout(() => {
-      // Process spell abilities before damage
+      // Process spell abilities BEFORE damage calculation
       let modifiedSpell = { ...spell };
+      let shouldBanish = false;
+      let extraSpellCast = 0;
       
-      // Handle Attune
-      if ((spell.ability ?? '').includes('Attune')) {
-        const match = (spell.ability ?? '').match(/\[(\w+)\]/);
-        if (match) {
-          const newElement = match[1].toLowerCase();
-          modifiedSpell = { ...modifiedSpell, element: newElement };
-          addToLog(`🔄 ${spell.name} attuned to ${newElement}`);
-        }
+      // Handle Banish ability
+      if (spell.ability?.includes('Banish')) {
+        shouldBanish = true;
+        addToLog(`🚫 ${spell.name} will be banished after attack`);
       }
       
       // Check combo
       const combo = checkCombo(modifiedSpell);
+      extraSpellCast = combo.extraSpellCast;
+      
+      if (combo.satisfied) {
+        addToLog(`💥 Combo activated! +${combo.bonus} damage${extraSpellCast > 0 ? `, +${extraSpellCast} spell cast` : ''}`);
+      }
       
       // Calculate final attack
       const attackInfo = calculateAttack(modifiedSpell);
       let finalAttack = attackInfo.attack + combo.bonus;
-      
-      if (combo.satisfied) {
-        addToLog(`💥 Combo activated! +${combo.bonus} damage`);
-      }
       
       // Check immunity
       const isImmune = area.immunity === attackInfo.element;
@@ -397,10 +396,10 @@ const DoomCasterDemo = () => {
         // Add element to played this turn
         setElementsPlayedThisTurn(prev => [...prev, modifiedSpell.element]);
         
-        // Tap the spell
+        // Tap the spell (but don't delete unless banished)
         newState.player1Spells = [...prev.player1Spells];
         newState.player1Spells[selectedSpell] = { ...modifiedSpell, tapped: true };
-        newState.spellsCastThisTurn = prev.spellsCastThisTurn + 1;
+        newState.spellsCastThisTurn = prev.spellsCastThisTurn + 1 + extraSpellCast;
         
         // Apply damage
         newState.areaZone = [...prev.areaZone];
@@ -428,23 +427,11 @@ const DoomCasterDemo = () => {
           );
         }
         
-        // Handle Banish
-        if (spell.ability?.includes('Banish')) {
+        // Handle Banish - remove from game after all effects
+        if (shouldBanish) {
           newState.removedFromGame = [...prev.removedFromGame, modifiedSpell];
           newState.player1Spells = newState.player1Spells.filter((_, i) => i !== selectedSpell);
           addToLog(`🚫 ${modifiedSpell.name} banished from game`);
-        }
-        
-        // Handle Refresh Spell Row
-        if (spell.ability?.includes('Refresh Spell Row')) {
-          newState.spellRow = [
-            { id: Date.now() + 1, name: 'New Spell 1', element: 'fire', attack: 5, ability: 'Combo: Fire' },
-            { id: Date.now() + 2, name: 'New Spell 2', element: 'water', attack: 4, ability: 'Attune [Wind]' },
-            { id: Date.now() + 3, name: 'New Spell 3', element: 'wind', attack: 6, ability: 'Banish' },
-            { id: Date.now() + 4, name: 'New Spell 4', element: 'earth', attack: 3, ability: 'Add (2) To [Earth]' },
-            { id: Date.now() + 5, name: 'New Spell 5', element: 'void', attack: 7, ability: 'Free Combo' }
-          ];
-          addToLog(`🔄 Spell row refreshed!`);
         }
         
         return newState;
@@ -480,7 +467,7 @@ const DoomCasterDemo = () => {
       }
       
       setFuseState({ ...fuseState, source: spellIndex, step: 'select_target' });
-      addToLog(`🔄 Selected ${spell.name}. Now select target spell.`);
+      addToLog(`🔄 Selected ${spell.name}. Now select target spell to attach to.`);
     } else if (fuseState.step === 'select_target') {
       if (spellIndex === fuseState.source) {
         addToLog("❌ Cannot fuse spell to itself!");
@@ -505,13 +492,13 @@ const DoomCasterDemo = () => {
         // Create modifier from source spell (becomes modifier side)
         const modifier = {
           name: `${sourceSpell.name} Modifier`,
-          attack: Math.floor(sourceSpell.attack / 2),
+          attack: Math.floor(sourceSpell.attack / 2) || 1, // Minimum 1 attack
           element: sourceSpell.element,
           source: 'fuse',
           id: Date.now()
         };
         
-        // Add modifier as LAST modifier to target spell
+        // Add modifier as LAST modifier to target spell (Fuse must be last)
         newState.player1Spells = [...prev.player1Spells];
         newState.player1Spells[targetIndex] = {
           ...targetSpell,
@@ -548,22 +535,23 @@ const DoomCasterDemo = () => {
   const resetGame = () => {
     setGameState({
       player1Spells: [
-        { id: 1, name: 'Shape Water', element: 'water', attack: 3, modifiers: [], tapped: false, ability: 'Fuse (1)' },
-        { id: 2, name: 'Gather Wind', element: 'wind', attack: 5, modifiers: [], tapped: false, ability: 'Combo: Wind' },
-        { id: 3, name: 'Conjure Fire', element: 'fire', attack: 4, modifiers: [], tapped: false, ability: 'Banish' },
-        { id: 4, name: 'Raise Earth', element: 'earth', attack: 6, modifiers: [], tapped: false, ability: 'Attune [Fire]' }
+        { id: 1, name: 'Shape Water', element: 'water', attack: 0, modifiers: [], tapped: false, ability: 'Fuse' },
+        { id: 2, name: 'Gather Wind', element: 'wind', attack: 3, modifiers: [], tapped: false, ability: 'Combo [Fire] or [Water] or [Earth] = +1 ATK, +1 Spell Cast' },
+        { id: 3, name: 'Conjure Fire', element: 'fire', attack: 5, modifiers: [], tapped: false, ability: 'None' },
+        { id: 4, name: 'Raise Earth', element: 'earth', attack: 4, modifiers: [], tapped: false, ability: 'Scout Area Card' },
+        { id: 5, name: 'Unleash Void', element: 'void', attack: 0, modifiers: [], tapped: false, ability: 'Refresh Spell Row + Banish' }
       ],
       spellRow: [
-        { id: 11, name: 'Lightning Bolt', element: 'void', attack: 6, ability: 'Banish' },
-        { id: 12, name: 'Flame Burst', element: 'fire', attack: 5, ability: 'Combo: Fire or Wind' },
-        { id: 13, name: 'Wind Cutter', element: 'wind', attack: 4, ability: 'Refresh Spell Row' },
-        { id: 14, name: 'Earth Shield', element: 'earth', attack: 2, ability: 'Add (3) To [Earth]' },
-        { id: 15, name: 'Void Strike', element: 'void', attack: 7, ability: 'Free Combo' }
+        { id: 11, name: 'Fireball', element: 'fire', attack: 4, ability: 'Combo [Fire] = +3 ATK' },
+        { id: 12, name: 'Tidal Barrage', element: 'water', attack: 3, ability: 'Combo [Water] = +4 ATK, Refresh Spell Row' },
+        { id: 13, name: 'Sonic Boom', element: 'wind', attack: 5, ability: 'Combo [Wind] = +1 Spell Cast' },
+        { id: 14, name: 'Earthquake', element: 'earth', attack: 4, ability: 'Refresh Area Card' },
+        { id: 15, name: 'Essence Lance', element: 'void', attack: 10, ability: 'Consume Spell (x2)' }
       ],
       areaZone: [
-        { id: 21, name: 'Crystal Caverns', defense: 8, immunity: 'fire', defeated: false, currentDamage: 0, ability: 'Consume Spell (1)' },
-        { id: 22, name: 'Sky Fortress', defense: 12, immunity: 'wind', defeated: false, currentDamage: 0, ability: 'Immobile' },
-        { id: 23, name: 'Molten Core', defense: 15, immunity: 'fire', defeated: false, currentDamage: 0, ability: null }
+        { id: 21, name: 'Barren Fields', defense: 25, immunity: undefined, defeated: false, currentDamage: 0, ability: null },
+        { id: 22, name: 'Tranquil Pond', defense: 10, immunity: 'water', defeated: false, currentDamage: 0, ability: null },
+        { id: 23, name: 'Mining Fields', defense: 20, immunity: 'earth', defeated: false, currentDamage: 0, ability: null }
       ],
       discardPile: [],
       removedFromGame: [],
@@ -763,12 +751,9 @@ const DoomCasterDemo = () => {
           <div className="bg-black/30 rounded-lg p-4">
             <h3 className="font-bold text-purple-400 mb-3">📖 Keywords</h3>
             <div className="text-xs text-gray-300 space-y-1">
-              <div><span className="text-blue-400">Fuse (x):</span> Attach to other spell</div>
-              <div><span className="text-green-400">Combo:</span> Bonus if elements played</div>
-              <div><span className="text-red-400">Banish:</span> Remove from game</div>
-              <div><span className="text-yellow-400">Attune:</span> Change element</div>
-              <div><span className="text-purple-400">Add (x) To [Element]:</span> Bonus to element</div>
-              <div><span className="text-orange-400">Consume Spell:</span> Discard to cast</div>
+              <div><span className="text-blue-400">Fuse:</span> Attach spell as modifier to another spell</div>
+              <div><span className="text-red-400">Banish:</span> Remove from game after casting</div>
+              <div><span className="text-green-400">Combo [Element]:</span> Bonus if elements played this turn</div>
             </div>
           </div>
 
@@ -803,12 +788,12 @@ const DoomCasterDemo = () => {
           <div className="bg-black/30 rounded-lg p-4">
             <h3 className="font-bold text-purple-400 mb-3">💡 Strategy</h3>
             <div className="text-xs text-gray-300 space-y-1">
-              <div>• Use Shape Water to fuse spells</div>
+              <div>• Use Shape Water to fuse spells together</div>
               <div>• Play elements for combo bonuses</div>
               <div>• Watch area immunities!</div>
-              <div>• Crystal Caverns needs sacrifice</div>
               <div>• Banished spells are gone forever</div>
-              <div>• Attune changes spell element</div>
+              <div>• Fuse modifiers are attached last</div>
+              <div>• Combos check elements played this turn</div>
             </div>
           </div>
         </div>
