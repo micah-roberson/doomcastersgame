@@ -51,7 +51,6 @@ const DoomCasterDemo = () => {
   const [animationState, setAnimationState] = useState('');
   const [turnCounter, setTurnCounter] = useState(1);
   const [gameState, setGameState] = useState({
-    difficulty: 'acolyte' as 'acolyte' | 'archmage',
     spellsCastThisTurn: 0,
     worldEndRevealed: false
   });
@@ -201,13 +200,7 @@ const DoomCasterDemo = () => {
     setTimeout(() => triggerAnimation('abilities-complete'), 5500);
   };
 
-  const toggleDifficulty = () => {
-    setGameState(prev => ({
-      ...prev,
-      difficulty: prev.difficulty === 'acolyte' ? 'archmage' : 'acolyte'
-    }));
-    triggerAnimation('difficulty-change');
-  };
+
 
   useEffect(() => {
     demoGameplay();
@@ -320,19 +313,6 @@ const DoomCasterDemo = () => {
           <div className="text-lg text-cyan-300 pixel-text">
             ARCADE BATTLE SYSTEM
           </div>
-          <div className="flex justify-center items-center gap-6 mb-6 mt-4">
-            <span className="text-white font-bold pixel-text">MODE:</span>
-            <button
-              onClick={toggleDifficulty}
-              className={`px-6 py-3 rounded pixel-font text-sm arcade-button ${
-                gameState.difficulty === 'acolyte' 
-                  ? 'text-green-400' 
-                  : 'text-red-400'
-              }`}
-            >
-              {gameState.difficulty === 'acolyte' ? 'ACOLYTE' : 'ARCHMAGE'}
-            </button>
-          </div>
         </div>
 
         {/* Control Buttons */}
@@ -364,17 +344,15 @@ const DoomCasterDemo = () => {
         <div className="game-screen rounded-lg p-8 min-h-[700px]">
           
           {/* World End Card */}
-          {gameState.difficulty === 'archmage' && (
-            <div className="text-center mb-6">
-              <CardPlaceholder 
-                type="world" 
-                label="WORLD END" 
-                glowing={gameState.worldEndRevealed}
-                casting={animationState === 'victory-achieved'}
-              />
-              <div className="text-xs text-gray-400 mt-1 pixel-font">FINAL BOSS</div>
-            </div>
-          )}
+          <div className="text-center mb-6">
+            <CardPlaceholder 
+              type="world" 
+              label="WORLD END" 
+              glowing={gameState.worldEndRevealed}
+              casting={animationState === 'victory-achieved'}
+            />
+            <div className="text-xs text-gray-400 mt-1 pixel-font">FINAL BOSS</div>
+          </div>
 
           {/* Turn Counter */}
           <div className="text-center mb-6 pixel-font">
@@ -566,7 +544,7 @@ const DoomCasterDemo = () => {
         {/* Game Info Footer */}
         <div className="mt-8 text-center text-xs text-gray-400 bg-black/50 rounded-lg p-4 pixel-border pixel-font">
           <p className="text-lg font-bold text-purple-400 mb-2 pixel-glow">DOOMCASTER: ARCADE EDITION</p>
-          <p>2 PLAYERS • {gameState.difficulty === 'acolyte' ? '20' : '30-40'} MIN • AGES 13+</p>
+          <p>2 PLAYERS • 20-40 MIN • AGES 13+</p>
           <p className="mt-2">MASTER ELEMENTS • EXPLOIT WEAKNESSES • CLAIM VICTORY</p>
         </div>
       </div>
